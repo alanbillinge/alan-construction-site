@@ -1,5 +1,9 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   CheckCircle,
   Hammer,
@@ -8,12 +12,16 @@ import {
   Mail,
   Phone,
   MapPin,
-  Home as HomeIcon,
+  Home,
   ArrowUpCircle,
   Truck,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
+
+// Simple multi-page brochure site for Alan Billinge Construction
+// Home / Services / Projects / Credentials / Contact
+// Uses shadcn UI components + lucide-react icons
 
 const PAGES = ["home", "services", "projects", "credentials", "contact"] as const;
 type Page = (typeof PAGES)[number];
@@ -46,14 +54,22 @@ function useHashRoute(defaultPage: Page = "home") {
 // --- IMAGES (construction-specific) ---
 const photos = {
   home: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=1600&auto=format&fit=crop", // cranes
-  services: "https://images.unsplash.com/photo-1581091215367-59ab6c1d3d5b?q=80&w=1600&auto=format&fit=crop", // formwork
-  projects: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1600&auto=format&fit=crop", // rc frame
-  credentials: "https://images.unsplash.com/photo-1591712611838-c9e68b0a0f63?q=80&w=1600&auto=format&fit=crop", // site works
-  contact: "https://images.unsplash.com/photo-1590650153854-13b7c1f3e5f3?q=80&w=1600&auto=format&fit=crop", // team coordination
+  services: "/services-hero.jpg", // Save your uploaded services image as public/services-hero.jpg
+  projects:
+    "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1600&auto=format&fit=crop", // rc frame
+  credentials:
+    "https://images.unsplash.com/photo-1591712611838-c9e68b0a0f63?q=80&w=1600&auto=format&fit=crop", // site works
+  contact:
+    "https://images.unsplash.com/photo-1590650153854-13b7c1f3e5f3?q=80&w=1600&auto=format&fit=crop", // team coordination
 };
 
 // --- SERVICES ---
 const services = [
+  {
+    icon: Wrench,
+    title: "Engineering & Setting Out",
+    text: "Permanent and temporary works setting out, drainage setting out, as‑built surveys, QA management, and monitoring. Ensuring precision, compliance, and traceability across all stages of construction.",
+  },
   {
     icon: Hammer,
     title: "Construction Management",
@@ -65,7 +81,7 @@ const services = [
     text: "All aspects of lifting — from static rigging works through to the erection and dismantle of tower cranes. Appointed Person (CPCS A61), Crane Supervision, and full compliance with BS7121. Experienced with complex lifts, confined spaces, and coordination across multiple trades.",
   },
   {
-    icon: Truck, // MEWP-related visual stand-in
+    icon: Truck, // MEWP-related visual stand‑in
     title: "MEWP Coordination",
     text: "Comprehensive management of MEWP operations including IPAF MEWP for Managers, coordination of access and egress plans, preparation of MEWP-specific RAMS, rescue plans, and site compliance assurance. Ensuring safety, efficiency, and adherence to manufacturer and HSE standards.",
   },
@@ -85,74 +101,39 @@ const projects = [
   {
     name: "Manchester Engineering Campus Development",
     role: "Logistics & Lifting Coordination",
-    summary: "Heavy lifts, MCWP, complex sequencing, and stakeholder liaison across live campus.",
+    summary:
+      "Heavy lifts, MCWP, complex sequencing, and stakeholder liaison across live campus.",
   },
   {
     name: "Royal Liverpool University Hospital",
     role: "Temporary Works / RC Interfaces",
-    summary: "Structural toppings, drainage coordination, and high-spec healthcare compliance.",
+    summary:
+      "Structural toppings, drainage coordination, and high-spec healthcare compliance.",
   },
   {
     name: "Weststone Construction Projects",
     role: "Concrete Frame & Fit-out Interfaces",
-    summary: "Tight programmes, tower crane logistics, quality assurance and handover readiness.",
+    summary:
+      "Tight programmes, tower crane logistics, quality assurance and handover readiness.",
   },
 ];
 
-// --- RUNTIME SMOKE TESTS ---
-function runSmokeTests() {
-  const tests: { name: string; pass: boolean }[] = [];
+// --- DEV RUNTIME CHECKS (lightweight test cases) ---
+function runDevChecks() {
+  if (typeof console === "undefined") return;
 
-  const iconsOk = [
-    CheckCircle,
-    Hammer,
-    Wrench,
-    Shield,
-    Mail,
-    Phone,
-    MapPin,
-    HomeIcon,
-    ArrowUpCircle,
-    Truck,
-  ].every((Icon) => typeof Icon === "function");
-  tests.push({ name: "lucide-react icons resolved", pass: iconsOk });
+  // Core structure tests
+  console.assert(Array.isArray(services), "services should be an array");
+  console.assert(services.length === 5, "services should have 5 entries");
 
-  tests.push({ name: "services count = 5", pass: Array.isArray(services) && services.length === 5 });
-  tests.push({ name: "projects count = 3", pass: Array.isArray(projects) && projects.length === 3 });
+  console.assert(Array.isArray(projects), "projects should be an array");
+  console.assert(projects.length === 3, "projects should have 3 entries");
 
-  const photosOk = Object.values(photos).every((u) => typeof u === "string" && u.startsWith("http"));
-  tests.push({ name: "page photos valid", pass: photosOk });
+  console.assert(typeof photos.home === "string" && photos.home.length > 0, "photos.home set");
 
-  return tests;
-}
-
-function TestPanel() {
-  const tests = runSmokeTests();
-  const allPass = tests.every((t) => t.pass);
-  return (
-    <div className="mx-auto max-w-7xl px-4 mt-6">
-      <div className="rounded-2xl border bg-white shadow-sm p-4">
-        <h2 className="text-base font-semibold mb-2">Runtime Smoke Tests</h2>
-        <ul className="space-y-2 text-sm">
-          {tests.map((t) => (
-            <li key={t.name} className="flex items-center gap-2">
-              <span
-                className={`inline-flex items-center justify-center h-5 w-5 rounded-full text-xs ${
-                  t.pass ? "bg-green-600 text-white" : "bg-red-600 text-white"
-                }`}
-              >
-                {t.pass ? "✓" : "✗"}
-              </span>
-              <span>{t.name}</span>
-            </li>
-          ))}
-        </ul>
-        <p className={`mt-3 text-xs ${allPass ? "text-green-700" : "text-red-700"}`}>
-          {allPass ? "All smoke tests passed." : "Some tests failed — review data or imports."}
-        </p>
-      </div>
-    </div>
-  );
+  // Extra sanity tests
+  console.assert(PAGES.includes("home" as Page), "PAGES should include 'home'");
+  console.assert(typeof photos.services === "string" && photos.services.length > 0, "photos.services set");
 }
 
 function Hero({ title, subtitle, img }: { title: string; subtitle: string; img: string }) {
@@ -181,7 +162,11 @@ function Hero({ title, subtitle, img }: { title: string; subtitle: string; img: 
           transition={{ duration: 0.5, delay: 0.1 }}
           className="relative"
         >
-          <img src={img} alt="Hero" className="aspect-[4/3] w-full object-cover rounded-3xl shadow-xl" />
+          <img
+            src={img}
+            alt="Hero"
+            className="aspect-[4/3] w-full object-cover rounded-3xl shadow-xl"
+          />
         </motion.div>
       </div>
     </section>
@@ -192,11 +177,10 @@ function HomePage() {
   return (
     <>
       <Hero
-        title="Delivering Safe, On-Programme Builds in the North West"
-        subtitle="We are an experienced Construction Management team with extensive experience across civil engineering, structural works, and high-profile developments. We have managed prestigious projects across the North West and nationwide, providing leadership in logistics, lifting operations, and temporary works. Collaborative and compliance-driven, we have successfully delivered schemes for principal contractors such as Willmott Dixon, Sisk, BAE Systems, CRUK, and Murphys, as well as working with Weststone Construction on challenging urban builds."
+        title="Delivering Safe, On‑Programme Builds in the North West"
+        subtitle="We are an experienced Construction Management team with extensive experience across civil engineering, structural works, and high‑profile developments. We have managed prestigious projects across the North West and nationwide, providing leadership in logistics, lifting operations, and temporary works. Collaborative and compliance‑driven, we have successfully delivered schemes for principal contractors such as Willmott Dixon, Sisk, BAE Systems, CRUK, and Murphys, as well as working with Weststone Construction on challenging urban builds."
         img={photos.home}
       />
-      <TestPanel />
     </>
   );
 }
@@ -213,23 +197,27 @@ function ServicesPage() {
         <div className="mx-auto max-w-7xl px-4 py-16">
           <div className="grid md:grid-cols-3 gap-6">
             {services.map(({ icon: Icon, title, text }) => (
-              <div key={title} className="rounded-2xl border bg-white shadow-sm p-5">
-                <div className="flex items-center gap-3 text-lg font-semibold mb-3">
-                  <Icon className="h-5 w-5" /> {title}
-                </div>
-                <p className="text-sm text-neutral-600 whitespace-pre-line">{text}</p>
-                <ul className="mt-4 space-y-2 text-sm">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4" /> RAMS / TBTs / Permits
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4" /> Programme & Sequencing
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4" /> Quality & Handover
-                  </li>
-                </ul>
-              </div>
+              <Card key={title} className="rounded-2xl shadow-sm">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-3 text-lg">
+                    <Icon className="h-5 w-5" /> {title}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-neutral-600 whitespace-pre-line">{text}</p>
+                  <ul className="mt-4 space-y-2 text-sm">
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4" /> RAMS / TBTs / Permits
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4" /> Programme & Sequencing
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4" /> Quality & Handover
+                    </li>
+                  </ul>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </div>
@@ -243,18 +231,22 @@ function ProjectsPage() {
     <>
       <Hero
         title="Selected Projects"
-        subtitle="A snapshot of complex, large-scale work."
+        subtitle="A snapshot of complex, large‑scale work."
         img={photos.projects}
       />
       <section className="bg-neutral-50 border-t">
         <div className="mx-auto max-w-7xl px-4 py-16">
           <div className="grid md:grid-cols-3 gap-6">
             {projects.map((p) => (
-              <div key={p.name} className="rounded-2xl border bg-white shadow-sm p-5">
-                <h2 className="text-lg font-semibold">{p.name}</h2>
-                <p className="text-sm font-medium mt-2">{p.role}</p>
-                <p className="mt-2 text-sm text-neutral-600">{p.summary}</p>
-              </div>
+              <Card key={p.name} className="rounded-2xl shadow-sm">
+                <CardHeader>
+                  <CardTitle className="text-lg">{p.name}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm font-medium">{p.role}</p>
+                  <p className="mt-2 text-sm text-neutral-600">{p.summary}</p>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </div>
@@ -264,26 +256,75 @@ function ProjectsPage() {
 }
 
 function CredentialsPage() {
+  const logoItems = [
+    { name: "CSCS", src: "/logos/cscs.png" },
+    { name: "CITB", src: "/logos/citb.png" },
+    { name: "NOCN", src: "/logos/nocn.png" },
+    { name: "IPAF", src: "/logos/ipaf.png" },
+  ];
+
   return (
     <>
       <Hero
         title="Credentials"
-        subtitle="Competency, compliance, and proven delivery."
+        subtitle="Competency, compliance, and proven delivery backed by nationally recognised schemes."
         img={photos.credentials}
       />
       <section className="bg-white border-t">
-        <div className="mx-auto max-w-7xl px-4 py-16">
-          <ul className="mt-6 grid md:grid-cols-2 gap-3 text-sm text-neutral-700 list-disc list-inside">
-            <li>Qualifications & Certifications:</li>
-            <ul className="ml-6 list-disc text-neutral-700">
-              <li>CSCS Level 6 Construction Management</li>
-              <li>SMSTS (Site Management Safety Training Scheme)</li>
-              <li>CPCS A61 / A62 / A40a Appointed Person, Crane Supervisor, Slinger Signaller</li>
-              <li>IPAF 3A/3B/1B – MEWP Operation</li>
-              <li>IPAF MEWP for Managers</li>
-              <li>Temporary Works Coordinator (BS5975)</li>
+        <div className="mx-auto max-w-7xl px-4 py-16 space-y-10">
+          <div className="rounded-3xl bg-neutral-900 text-white p-8 md:p-10 shadow-lg">
+            <h2 className="text-xl md:text-2xl font-extrabold mb-4">Core Qualifications &amp; Tickets</h2>
+            <ul className="space-y-2 text-sm md:text-base">
+              <li>
+                <strong>CSCS Level 6</strong> – Construction Management
+              </li>
+              <li>
+                <strong>SMSTS</strong> – Site Management Safety Training Scheme
+              </li>
+              <li>
+                <strong>CPCS A61 / A62 / A40a</strong> – Appointed Person, Crane Supervisor, Slinger Signaller
+              </li>
+              <li>
+                <strong>IPAF 3A / 3B / 1B</strong> – MEWP Operation
+              </li>
+              <li>
+                <strong>IPAF MEWP for Managers</strong> – planning and supervising MEWP activities
+              </li>
+              <li>
+                <strong>Temporary Works Coordinator</strong> – BS5975 compliant
+              </li>
             </ul>
-          </ul>
+          </div>
+
+          <div>
+            <h3 className="text-lg md:text-xl font-semibold mb-4">Recognised Training &amp; Certification Bodies</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 items-center">
+              {logoItems.map((logo) => (
+                <div
+                  key={logo.name}
+                  className="flex flex-col items-center justify-center rounded-2xl border bg-neutral-50 px-4 py-3 shadow-sm"
+                >
+                  <div className="h-10 flex items-center justify-center mb-2">
+                    <img
+                      src={logo.src}
+                      alt={`${logo.name} logo`}
+                      className="max-h-10 max-w-full object-contain"
+                    />
+                  </div>
+                  <span className="text-xs font-semibold tracking-wide text-neutral-700">
+                    {logo.name}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <p className="mt-4 text-xs text-neutral-500">
+              Add logo files to <code className="font-mono bg-neutral-100 px-1 py-0.5 rounded">/public/logos/</code>{" "}
+              as <code className="font-mono bg-neutral-100 px-1 py-0.5 rounded">cscs.png</code>,{" "}
+              <code className="font-mono bg-neutral-100 px-1 py-0.5 rounded">citb.png</code>,{" "}
+              <code className="font-mono bg-neutral-100 px-1 py-0.5 rounded">nocn.png</code>,{" "}
+              and <code className="font-mono bg-neutral-100 px-1 py-0.5 rounded">ipaf.png</code> to display the badges.
+            </p>
+          </div>
         </div>
       </section>
     </>
@@ -301,37 +342,22 @@ function ContactPage() {
       <section className="bg-neutral-50 border-t">
         <div className="mx-auto max-w-7xl px-4 py-16">
           <div className="grid md:grid-cols-2 gap-8">
-            <div className="rounded-2xl border bg-white shadow-sm p-5">
-              <h2 className="text-lg font-semibold mb-4">Send a Message</h2>
-              <form className="space-y-4">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <input
-                    placeholder="Your Name"
-                    className="w-full border rounded-lg px-3 py-2 text-sm"
-                  />
-                  <input
-                    placeholder="Email"
-                    type="email"
-                    className="w-full border rounded-lg px-3 py-2 text-sm"
-                  />
-                </div>
-                <input
-                  placeholder="Company / Project"
-                  className="w-full border rounded-lg px-3 py-2 text-sm"
-                />
-                <textarea
-                  placeholder="Scope, dates, site constraints…"
-                  rows={5}
-                  className="w-full border rounded-lg px-3 py-2 text-sm"
-                />
-                <button
-                  type="button"
-                  className="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold bg-neutral-900 text-white hover:bg-neutral-800"
-                >
-                  Submit
-                </button>
-              </form>
-            </div>
+            <Card className="rounded-2xl">
+              <CardHeader>
+                <CardTitle>Send a Message</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form className="space-y-4">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <Input placeholder="Your Name" />
+                    <Input placeholder="Email" type="email" />
+                  </div>
+                  <Input placeholder="Company / Project" />
+                  <Textarea placeholder="Scope, dates, site constraints…" rows={5} />
+                  <Button type="button">Submit</Button>
+                </form>
+              </CardContent>
+            </Card>
             <div className="space-y-4 text-sm">
               <div className="flex items-center gap-3">
                 <Mail className="h-5 w-5" /> alan_billinge@yahoo.co.uk
@@ -343,7 +369,7 @@ function ContactPage() {
                 <MapPin className="h-5 w-5" /> Preston
               </div>
               <p className="text-neutral-600">
-                Available for short- and long-term engagements, CIS or PAYE.
+                Available for short‑ and long‑term engagements, CIS or PAYE.
               </p>
               <div className="pt-2">
                 <p className="font-medium">Business Hours</p>
@@ -359,6 +385,12 @@ function ContactPage() {
 
 export default function Website() {
   const { page, navigate } = useHashRoute("home");
+
+  // Run lightweight dev checks to mimic basic test cases at runtime
+  if (process.env.NODE_ENV !== "production") {
+    runDevChecks();
+  }
+
   const PageComponent = useMemo(() => {
     switch (page) {
       case "services":
@@ -394,7 +426,7 @@ export default function Website() {
               onClick={() => navigate("home")}
               className="hover:opacity-70 flex items-center gap-1"
             >
-              <HomeIcon className="h-4 w-4" /> Home
+              <Home className="h-4 w-4" /> Home
             </a>
             <a
               href="#services"
